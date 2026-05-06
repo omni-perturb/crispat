@@ -3,7 +3,6 @@
 import argparse
 import os
 import sys
-import tempfile
 from typing import Callable
 
 import anndata as ad
@@ -57,7 +56,7 @@ def parse_args() -> argparse.Namespace:
 def build_assignment_layer(
     assignments_df: pd.DataFrame, adata: ad.AnnData
 ) -> sp.csr_matrix:
-    """Build a binary sparse cells × guides matrix from the long-format assignments CSV."""
+    """Build a binary sparse cells x guides matrix from the long-format assignments CSV."""
     cell_idx = pd.Index(adata.obs_names)
     guide_idx = pd.Index(adata.var_names)
 
@@ -91,16 +90,18 @@ def main() -> None:
     if adata_guides.n_vars == 0:
         raise ValueError("crispr modality is empty")
 
-    with tempfile.NamedTemporaryFile(suffix=".h5ad", delete=False) as tmp:
-        tmp_path = tmp.name
-    adata_guides.write_h5ad(tmp_path)
-
+    tmp_path = os.path.join(args.output_dir, "_crispr_counts.h5ad")
     crispat_out = os.path.join(args.output_dir, args.method)
     print(
         f"Running crispat {args.method} (n_iter={n_iter}, umi_threshold={args.umi_threshold}) ...",
         file=sys.stderr,
     )
-    fn(tmp_path, crispat_out, n_iter=n_iter, UMI_threshold=args.umi_threshold)
+    try:
+        adata_guides.write_h5ad(tmp_path)
+        fn(tmp_path, crispat_out, n_iter=n_iter, UMI_threshold=args.umi_threshold)
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
     os.unlink(tmp_path)
 
     print("Loading assignments ...", file=sys.stderr)
