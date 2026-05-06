@@ -91,7 +91,8 @@ def main() -> None:
         raise ValueError("crispr modality is empty")
 
     tmp_path = os.path.join(args.output_dir, "_crispr_counts.h5ad")
-    crispat_out = os.path.join(args.output_dir, args.method)
+    # crispat concatenates output_dir directly (no os.path.join), needs trailing slash
+    crispat_out = os.path.join(args.output_dir, args.method) + "/"
     print(
         f"Running crispat {args.method} (n_iter={n_iter}, umi_threshold={args.umi_threshold}) ...",
         file=sys.stderr,
@@ -102,7 +103,6 @@ def main() -> None:
     finally:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
-    os.unlink(tmp_path)
 
     print("Loading assignments ...", file=sys.stderr)
     assignments = pd.read_csv(os.path.join(crispat_out, "assignments.csv"))
