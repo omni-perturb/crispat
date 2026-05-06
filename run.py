@@ -25,8 +25,8 @@ def parse_args() -> argparse.Namespace:
         description="crispat mixture model guide assignment"
     )
     parser.add_argument(
-        "--input",
-        "-i",
+        "--rawcounts.h5mu",
+        dest="rawcounts",
         required=True,
         help="path to input h5mu (MuData with rna and crispr modalities)",
     )
@@ -80,7 +80,7 @@ def main() -> None:
     n_iter = args.n_iter if args.n_iter is not None else default_n_iter
 
     print("Loading input h5mu ...", file=sys.stderr)
-    mdata = mu.read_h5mu(args.input)
+    mdata = mu.read_h5mu(args.rawcounts)
     adata_guides = mdata["crispr"]
     print(
         f"  crispr modality: {adata_guides.n_obs} x {adata_guides.n_vars}",
