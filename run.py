@@ -131,9 +131,13 @@ def main() -> None:
     )
     per_cell["n_guides_assigned"] = per_cell["guide_identity"].str.count(",") + 1
     adata_guides.obs = adata_guides.obs.join(per_cell, how="left")
+    adata_guides.obs["guide_identity"] = adata_guides.obs["guide_identity"].fillna("")
     adata_guides.obs["n_guides_assigned"] = (
         adata_guides.obs["n_guides_assigned"].fillna(0).astype(int)
     )
+    row_sums = np.asarray(adata_guides.layers["assigned"].sum(axis=1)).flatten()
+    adata_guides.obs["is_unassigned"] = (row_sums == 0).astype(int)
+    adata_guides.obs["is_multi_infected"] = (row_sums > 1).astype(int)
 
     adata_guides.uns["guide_assignment_method"] = f"crispat_{args.method}"
     adata_guides.uns["guide_assignment_params"] = {
