@@ -13,10 +13,10 @@ import muon as mu
 import crispat
 
 METHODS: dict[str, tuple[Callable, int]] = {
-    "pgmm":  (crispat.ga_poisson_gauss, 500),
-    "gauss": (crispat.ga_gauss,         250),
-    "2beta": (crispat.ga_2beta,         500),
-    "3beta": (crispat.ga_3beta,         500),
+    "pgmm": (crispat.ga_poisson_gauss, 500),
+    "gauss": (crispat.ga_gauss, 250),
+    "2beta": (crispat.ga_2beta, 500),
+    "3beta": (crispat.ga_3beta, 500),
 }
 
 
@@ -90,8 +90,6 @@ def main() -> None:
     if adata_guides.n_vars == 0:
         raise ValueError("crispr modality is empty")
 
-    adata_guides = adata_guides[:, :100].copy()
-
     tmp_path = os.path.join(args.output_dir, "_crispr_counts.h5ad")
     # crispat concatenates output_dir directly (no os.path.join), needs trailing slash
     crispat_out = os.path.join(args.output_dir, args.method) + "/"
@@ -102,7 +100,13 @@ def main() -> None:
     try:
         adata_guides.write_h5ad(tmp_path)
         extra = {"n_jobs": 16} if args.method == "pgmm" else {}
-        fn(tmp_path, crispat_out, n_iter=n_iter, UMI_threshold=args.umi_threshold, **extra)
+        fn(
+            tmp_path,
+            crispat_out,
+            n_iter=n_iter,
+            UMI_threshold=args.umi_threshold,
+            **extra,
+        )
     finally:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
