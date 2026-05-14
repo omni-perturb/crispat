@@ -139,6 +139,13 @@ def main() -> None:
     adata_guides.obs["is_unassigned"] = (row_sums == 0).astype(int)
     adata_guides.obs["is_multi_infected"] = (row_sums > 1).astype(int)
 
+    # target_gene for singly-assigned cells (multi-infected and unassigned get "")
+    if "target_gene" in adata_guides.var.columns:
+        guide_to_gene = adata_guides.var["target_gene"].to_dict()
+        adata_guides.obs["target_gene"] = adata_guides.obs["guide_identity"].apply(
+            lambda g: guide_to_gene.get(g, "") if g and "," not in g else ""
+        )
+
     adata_guides.uns["guide_assignment_method"] = f"crispat_{args.method}"
     adata_guides.uns["guide_assignment_params"] = {
         "method": args.method,
